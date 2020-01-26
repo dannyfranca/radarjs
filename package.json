@@ -1,0 +1,89 @@
+{
+  "name": "@dannyfranca/radarjs",
+  "version": "0.1.0",
+  "description": "Event Manager, with namespaces, emitting, bubbling and broadcasting, made with RxJS Subjects and inspired by jQuery event API.",
+  "license": "MIT",
+  "author": {
+    "name": "Danny França",
+    "email": "contato@dannyfranca.com"
+  },
+  "contributors": [
+    {
+      "name": "Danny França <contato@dannyfranca.com>"
+    }
+  ],
+  "source": "src/radar.ts",
+  "main": "lib/radar.js",
+  "module": "lib/radar.mjs",
+  "unpkg": "lib/radar.umd.js",
+  "types": "lib/radar.d.ts",
+  "repository": "https://github.com/dannyfranca/radarjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development jest --watch",
+    "build": "cross-env NODE_ENV=production concurrently -n microbundle,typedoc 'yarn:bundle' 'yarn:doc'",
+    "test": "cross-env NODE_ENV=test concurrently -n type-check,lint,jest 'yarn:type-check' 'yarn:lint' 'jest'",
+    "precommit": "concurrently -n type-check,lint-staged 'yarn:type-check' 'lint-staged'",
+    "bundle": "microbundle --tsconfig ./tsconfig.base",
+    "doc": "typedoc",
+    "coverage": "codecov",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint --ext .ts,.js --ignore-path .gitignore --fix src/**",
+    "publish": "npm publish --access public"
+  },
+  "keywords": [
+    "event",
+    "radar",
+    "on",
+    "off",
+    "subscribe",
+    "unsubscribe",
+    "trigger",
+    "next",
+    "emit",
+    "broadcast",
+    "bubble",
+    "handler",
+    "manager",
+    "jquery",
+    "rxjs",
+    "subject",
+    "observer"
+  ],
+  "files": [
+    "README.md",
+    "LICENSE",
+    "lib/"
+  ],
+  "bugs": {
+    "url": "https://github.com/dannyfranca/radarjs/issues"
+  },
+  "homepage": "https://github.com/dannyfranca/radarjs#readme",
+  "devDependencies": {
+    "@types/jest": "^24.9.0",
+    "@types/node": "^13.1.6",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "codecov": "^3.6.1",
+    "concurrently": "^5.0.2",
+    "cross-env": "^6.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^4.0.7",
+    "jest": "^25.1.0",
+    "jest-extended": "^0.11.4",
+    "lint-staged": "^9.5.0",
+    "microbundle": "^0.11.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.3.0",
+    "ts-node": "^8.6.2",
+    "typedoc": "^0.16.2",
+    "typescript": "^3.7.4"
+  },
+  "dependencies": {
+    "rxjs": "^6.5.4"
+  }
+}
