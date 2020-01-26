@@ -1,12 +1,12 @@
 import { Radar } from '../src/radar'
 
-const eventus = new Radar()
+const radar = new Radar()
 
 test('Setting new error handler', () => {
   expect(() =>
-    eventus.setErrorhandler(error => {
+    radar.setErrorHandler(error => {
       console.log(error.message)
     })
   ).not.toThrow()
-  expect(() => eventus.on('', () => 'will not throw')).not.toThrow()
+  expect(() => radar.on('', () => 'will not throw')).not.toThrow()
 })

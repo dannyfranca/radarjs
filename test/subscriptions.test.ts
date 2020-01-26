@@ -1,8 +1,8 @@
 import { Radar } from '../src/radar'
 import { subcribeToPromiseFactory } from '../src/helpers'
 
-const eventus = new Radar()
-const toPromise = subcribeToPromiseFactory(eventus)
+const radar = new Radar()
+const toPromise = subcribeToPromiseFactory(radar)
 
 test('Subscription and trigger', async () => {
   const promise = Promise.all([
@@ -14,14 +14,14 @@ test('Subscription and trigger', async () => {
     expect(toPromise('event4.ns2', val => val)).rejects.toEqual('timeout')
   ])
 
-  eventus.off('.ns1')
-  eventus.trigger('event', 'info')
-  eventus.trigger('event2', 'info2')
-  eventus.trigger('event3', 'info3')
-  eventus.unsubscribe('event4')
-  eventus.next('event4', 'info4')
-  eventus.unsubscribe('event4')
-  eventus.off('.ns3')
+  radar.off('.ns1')
+  radar.trigger('event', 'info')
+  radar.trigger('event2', 'info2')
+  radar.trigger('event3', 'info3')
+  radar.unsubscribe('event4')
+  radar.next('event4', 'info4')
+  radar.unsubscribe('event4')
+  radar.off('.ns3')
 
   return promise
 })
