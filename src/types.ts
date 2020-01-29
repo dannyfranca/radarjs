@@ -1,7 +1,9 @@
 import { Subject, Subscription } from 'rxjs'
 
+export type EventSubject = Subject<any[]>
+
 export interface SubjectPool {
-  [key: string]: Subject<any>
+  [key: string]: EventSubject
 }
 
 export interface SubscriptionNamespaces {
@@ -11,6 +13,19 @@ export interface SubscriptionNamespaces {
 export interface EventObject {
   eventName: string
   namespaces: string[]
+}
+
+export interface EventRelationObject {
+  [key: string]: true
+}
+
+export interface SubjectRelation {
+  parents: EventRelationObject
+  children: EventRelationObject
+}
+
+export interface SubjectTree {
+  [key: string]: SubjectRelation
 }
 
 export interface CheckManyAndThrowConfig {
