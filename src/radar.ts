@@ -1,5 +1,11 @@
 import { Subject, Subscription } from 'rxjs'
-import { CheckManyAndThrowConfig, ErrorHandler } from './types'
+import { EventSubject } from './types'
+import {
+  CheckManyAndThrowConfig,
+  ErrorHandler,
+  SubjectTree,
+  SubjectRelation
+} from './types'
 import {
   SubjectPool,
   SubscriptionNamespaces,
@@ -8,9 +14,18 @@ import {
 } from './types'
 
 export class Radar {
-  private _subjectPool: SubjectPool = {}
-  private _subscriptionNamespaces: SubscriptionNamespaces = {}
-  private _errorHandler: ErrorHandler = (error: Error) => {
+  private readonly _subjectPool: SubjectPool = {}
+  private readonly _subscriptionNamespaces: SubscriptionNamespaces = {}
+  private readonly _subjectTree: SubjectTree = {}
+
+  /**
+   * Set error handler.
+   * Default: (error) => throw error
+   * ```typescript
+   * radar.setErrorHandler(error => {....})
+   * ```
+   */
+  public errorHandler: ErrorHandler = (error: Error): void => {
     throw error
   }
 
@@ -25,7 +40,7 @@ export class Radar {
   on(eventString: string, cb: SubscriptionCallback): void {
     const { eventName, namespaces } = Radar.formatEventString(eventString)
 
-    this.checkAndThrow(!eventName, 'event must have a name')
+    if (this.checkAndThrow(!eventName, 'event must have a name')) return
 
     const subscription = this.subscribeToSubject(eventName, cb)
     this.subscribeToNamespaces(namespaces, subscription)
@@ -48,13 +63,17 @@ export class Radar {
   off(eventString: string): void {
     const { eventName, namespaces } = Radar.formatEventString(eventString)
 
-    this.checkManyAndThrow({
-      'To turn events off, reference a name or namespace, not both':
-        namespaces.length && eventName,
-      'eventString must reference an event name or namespace':
-        !namespaces.length && !eventName,
-      "Private events can't be disabled": eventName && eventName.startsWith('$')
-    })
+    if (
+      this.checkManyAndThrow({
+        'To turn events off, reference a name or namespace, not both':
+          namespaces.length && eventName,
+        'eventString must reference an event name or namespace':
+          !namespaces.length && !eventName,
+        "Private events can't be disabled":
+          eventName && eventName.startsWith('$')
+      })
+    )
+      return
 
     if (namespaces.length) this.unsubscribeNamespaces(namespaces)
     else this.unsubscribeEvent(eventName)
@@ -63,39 +82,97 @@ export class Radar {
   /**
    * Alias to [[Radar.off]] method
    */
-  unsubscribe(name: string) {
-    return this.off(name)
+  unsubscribe(eventName: string) {
+    return this.off(eventName)
   }
 
   /**
    * Trigger an event with given data as arguments
-   * @param name event name to trigger
-   * @param args data to be sent as data to event
+   * @param eventName event name to trigger
+   * @param args data to be sent as data with event
    * ```typescript
    * radar.trigger('event', ...data)
    * ```
    */
-  trigger(name: string, ...args: any[]): void {
-    const subject = this._subjectPool[name]
+  trigger(eventName: string, ...args: any[]): void {
+    const subject = this._subjectPool[eventName]
     if (subject) subject.next(args)
   }
 
   /**
    * Alias to [[Radar.trigger]] method
    */
-  next(name: string, ...args: any[]): void {
-    this.trigger(name, ...args)
+  next(eventName: string, ...args: any[]): void {
+    this.trigger(eventName, ...args)
   }
 
   /**
-   * Set error handler.
-   * Default: (error) => throw error
-   * ```typescript
-   * radar.setErrorHandler(error => {....})
-   * ```
+   * Create a relation between a parent event and a child one
+   * @param parentName event name to be parent
+   * @param childName event name to be child
    */
-  setErrorHandler(handler: ErrorHandler): void {
-    this._errorHandler = handler
+  link(parentName: string, childName: string): void {
+    if (
+      this.checkAndThrow(
+        this.hasChild(childName, parentName),
+        `${childName} is already parent of ${parentName}. You cannot create a circular relation.`
+      )
+    )
+      return
+
+    this.setRelation(parentName, childName)
+  }
+
+  private setRelation(parentName: string, childName: string): void {
+    const parentRelation = this.getRelation(parentName)
+    parentRelation.children[childName] = true
+
+    const childRelation = this.getRelation(childName)
+    childRelation.parents[parentName] = true
+  }
+
+  /**
+   * Destroy a relation between a parent event and a child one
+   * @param parentName event name to be parent
+   * @param childName event name to be child
+   */
+  unlink(parentName: string, childName: string) {
+    const relation = this.getRelation(parentName)
+    delete relation.children[childName]
+  }
+
+  /**
+   * Trigger an event and their parents with given data as arguments
+   * @param eventName event name to emit
+   * @param args data to be sent as data with event to parents
+   */
+  emit(eventName: string, ...args: any[]): void {
+    for (const name of this.getParentNames(eventName)) {
+      this.trigger(name, args)
+      this.emit(name, args)
+    }
+  }
+
+  /**
+   * Trigger an event and their children with given data as arguments
+   * @param eventName event name to trigger
+   * @param args data to be sent as data with event to children
+   */
+  broadcast(eventName: string, ...args: any[]): void {
+    for (const name of this.getChildrenNames(eventName)) {
+      this.trigger(name, args)
+      this.broadcast(name, args)
+    }
+  }
+
+  /**
+   * Check a relation between a parent and a child
+   * @param parent parent event name
+   * @param child child event name
+   */
+  hasChild(parent: string, child: string): boolean {
+    const relation = this.getRelation(parent)
+    return relation.children[child]
   }
 
   private subscribeToSubject(
@@ -107,9 +184,28 @@ export class Radar {
     })
   }
 
-  private getSubject(name: string): Subject<any> {
-    this._subjectPool[name] = this._subjectPool[name] || new Subject<any[]>()
-    return this._subjectPool[name]
+  private getParentNames(eventName: string) {
+    const { parents } = this.getRelation(eventName)
+    return Object.keys(parents)
+  }
+
+  private getChildrenNames(eventName: string) {
+    const { children } = this.getRelation(eventName)
+    return Object.keys(children)
+  }
+
+  private getSubject(eventName: string): EventSubject {
+    this._subjectPool[eventName] =
+      this._subjectPool[eventName] || new Subject<any[]>()
+    return this._subjectPool[eventName]
+  }
+
+  private getRelation(eventName: string): SubjectRelation {
+    this._subjectTree[eventName] = this._subjectTree[eventName] || {
+      parents: {},
+      children: {}
+    }
+    return this._subjectTree[eventName]
   }
 
   private getSubscriptionNamespace(namespace: string): Subscription {
@@ -153,14 +249,18 @@ export class Radar {
     }
   }
 
-  private checkManyAndThrow(config: CheckManyAndThrowConfig): void {
-    for (const key in config) this.checkAndThrow(config[key], key)
+  private checkManyAndThrow(config: CheckManyAndThrowConfig): boolean {
+    for (const key in config) {
+      if (this.checkAndThrow(config[key], key)) return true
+    }
+    return false
   }
 
-  private checkAndThrow(test: any, errorMessage: string): void {
-    if (!test) return
+  private checkAndThrow(test: any, errorMessage: string): boolean {
+    if (!test) return false
     const error = new Error(errorMessage)
     this.trigger('$error', error)
-    this._errorHandler(error)
+    this.errorHandler(error)
+    return true
   }
 }
