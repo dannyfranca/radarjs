@@ -1,6 +1,6 @@
 {
   "name": "@dannyfranca/radarjs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Event Manager, with namespaces, emitting, bubbling and broadcasting, made with RxJS Subjects and inspired by jQuery event API.",
   "license": "MIT",
   "author": {
@@ -35,6 +35,9 @@
   },
   "keywords": [
     "event",
+    "events",
+    "emitter",
+    "tree",
     "radar",
     "on",
     "off",
