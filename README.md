@@ -53,7 +53,7 @@ const radar = new Radar()
 
 ## Usage
 
-### Listen to Events
+### Listen for Events
 
 ```js
 const state = {
@@ -105,6 +105,50 @@ radar.trigger('notify', notification, ...data)
 radar.next('logout')
 ```
 
+### Multilevel Events
+
+```js
+// set child event
+radar.link('grandparent', 'parent')
+radar.link('parent', 'child')
+
+// destroy link
+radar.unlink('parent', 'child')
+
+// broadcast events down to the whole tree just like trigger
+// will trigger grandparent, parent and child
+radar.broadcast('grandparent', ...data)
+
+// will trigger parent and child
+radar.broadcast('parent', ...data)
+
+// emit events up to the whole tree just like trigger
+// will trigger child, parent and grandparent
+radar.emit('child', ...data)
+
+// will trigger only grandparent
+radar.emit('grandparent', ...data)
+```
+
+#### Auto Link
+
+You can autolink with ":" character
+
+```js
+radar.on('event:frag1:frag2', () => {/*...*/})
+
+// will fire "event", "event:frag1" and "event:frag1:frag2" events
+radar.broadcast('event', ...data)
+
+// will fire "event:frag1" and "event" events
+radar.emit('event:frag1', ...data)
+
+// ATTENTION: will fire just frag1.
+// frag1 and frag2 is not supposed to be events,
+// just words appended to eventNames
+radar.broadcast('frag1', ...data)
+```
+
 ### Native Events
 
 Native events has reserved names starting with $. Until now, the only native event available is $error.
@@ -128,14 +172,6 @@ You can set yout own:
 // set your error handler
 radar.setErrorHandler((error: Error) => {/*...*/})
 ```
-
-## Rodamap
-
-Here's what's coming up:
-
-- [] Event tree
-- [] Event broadcast to children
-- [] Event emit to parents
 
 ## License
 
