@@ -13,3 +13,10 @@ test('Unsubscription errors', () => {
   expect(() => radar.off('.')).toThrow()
   expect(() => radar.off('event.namespace')).toThrow()
 })
+
+test('Link errors', () => {
+  expect(() => {
+    radar.link('parent', 'child')
+    radar.link('child', 'parent')
+  }).toThrow()
+})

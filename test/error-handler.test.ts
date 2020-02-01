@@ -9,4 +9,9 @@ test('Setting new error handler', () => {
     }
   ).not.toThrow()
   expect(() => radar.on('', () => 'will not throw')).not.toThrow()
+  expect(() => radar.off('')).not.toThrow()
+  expect(() => {
+    radar.link('parent', 'child')
+    radar.link('child', 'parent')
+  }).not.toThrow()
 })
