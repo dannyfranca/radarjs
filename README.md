@@ -22,23 +22,19 @@
     <img src="https://david-dm.org/dannyfranca/radarjs/status.svg?style=flat-square" />
 </a>
 
-<a href="https://www.codacy.com/manual/dannyfranca/radarjs" target="_blank">
-    <img src="https://img.shields.io/codacy/grade/addca1007fb044c3a994c7e0ec504092?style=flat-square&logo=codacy" />
-</a>
-
 </p>
 
-# Install
+## Install
 
-## Module
+### Module
 
-### Download
+#### Download
 
 ```bash
 npm i radarjs
 ```
 
-### Import
+#### Import
 
 ```js
 import { Radar } from '@dannyfranca/radarjs'
@@ -46,7 +42,7 @@ import { Radar } from '@dannyfranca/radarjs'
 const radar = new Radar()
 ```
 
-## CDN
+### CDN
 
 ```html
 <script src="unpkg.com/radarjs"></script>
@@ -55,9 +51,9 @@ const radar = new Radar()
 <script src="unpkg.com/radarjs@0.1.0/lib/radar.umd.js"></script>
 ```
 
-# Usage
+## Usage
 
-## Listen to Events
+### Listen to Events
 
 ```js
 const state = {
@@ -80,7 +76,7 @@ radar.subscribe('logout', () => {/*...*/})
 radar.on('notify.namespace1.namespace2', () => {/*...*/})
 ```
 
-## Unsubscribe from Events
+### Unsubscribe from Events
 
 ```js
 // by event name
@@ -93,7 +89,7 @@ radar.unsubscribe('logout')
 radar.off('.namespace1')
 ```
 
-## Trigger Events
+### Trigger Events
 
 ```js
 // pass any data to an event trigger
@@ -109,11 +105,11 @@ radar.trigger('notify', notification, ...data)
 radar.next('logout')
 ```
 
-## Native Events
+### Native Events
 
 Native events has reserved names starting with $. Until now, the only native event available is $error.
 
-### $error event
+#### $error event
 
 ```typescript
 // listening to $error
@@ -133,7 +129,7 @@ You can set yout own:
 radar.setErrorHandler((error: Error) => {/*...*/})
 ```
 
-# Rodamap
+## Rodamap
 
 Here's what's coming up:
 
@@ -141,7 +137,7 @@ Here's what's coming up:
 - [] Event broadcast to children
 - [] Event emit to parents
 
-# License
+## License
 
 [MIT](./LICENSE)
 
