@@ -1,12 +1,10 @@
 import { Subject, Subscription } from 'rxjs'
-import { EventSubject } from './types'
 import {
+  EventSubject,
   CheckManyAndThrowConfig,
   ErrorHandler,
   SubjectTree,
-  SubjectRelation
-} from './types'
-import {
+  SubjectRelation,
   SubjectPool,
   SubscriptionNamespaces,
   EventObject,
