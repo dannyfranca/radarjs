@@ -42,8 +42,30 @@ export class Radar {
 
     if (this.checkAndThrow(!eventName, 'event must have a name')) return
 
+    this.autoEventTree(eventName)
+
     const subscription = this.subscribeToSubject(eventName, cb)
     this.subscribeToNamespaces(namespaces, subscription)
+  }
+
+  private autoEventTree(eventName: string): void {
+    const eventNames = Radar.generateEventTreeNames(eventName)
+    eventNames.reduce((accumulator, currentValue) => {
+      this.link(accumulator, currentValue)
+      return currentValue
+    })
+  }
+
+  static generateEventTreeNames(eventName: string): string[] {
+    const eventNames: string[] = []
+    const eventNamesFragments = eventName.split(':')
+    eventNames.push(eventNamesFragments[0])
+    eventNamesFragments.reduce((accumulator, currentValue) => {
+      const currentEventName = `${accumulator}:${currentValue}`
+      eventNames.push(currentEventName)
+      return currentEventName
+    })
+    return eventNames
   }
 
   /**
@@ -247,18 +269,6 @@ export class Radar {
       eventName,
       namespaces: eventArray.filter(Boolean)
     }
-  }
-
-  static generateEventTreeNames(eventName: string): string[] {
-    const eventNames: string[] = []
-    const eventNamesFragments = eventName.split(':')
-    eventNames.push(eventNamesFragments[0])
-    eventNamesFragments.reduce((accumulator, currentValue) => {
-      const currentEventName = `${accumulator}:${currentValue}`
-      eventNames.push(currentEventName)
-      return currentEventName
-    })
-    return eventNames
   }
 
   private checkManyAndThrow(config: CheckManyAndThrowConfig): boolean {
