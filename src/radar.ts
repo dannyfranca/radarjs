@@ -147,9 +147,9 @@ export class Radar {
    * @param args data to be sent as data with event to parents
    */
   emit(eventName: string, ...args: any[]): void {
+    this.trigger(eventName, ...args)
     for (const name of this.getParentNames(eventName)) {
-      this.trigger(name, args)
-      this.emit(name, args)
+      this.emit(name, ...args)
     }
   }
 
@@ -159,9 +159,9 @@ export class Radar {
    * @param args data to be sent as data with event to children
    */
   broadcast(eventName: string, ...args: any[]): void {
+    this.trigger(eventName, ...args)
     for (const name of this.getChildrenNames(eventName)) {
-      this.trigger(name, args)
-      this.broadcast(name, args)
+      this.broadcast(name, ...args)
     }
   }
 
