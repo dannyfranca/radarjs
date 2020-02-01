@@ -249,6 +249,18 @@ export class Radar {
     }
   }
 
+  static generateEventTreeNames(eventName: string): string[] {
+    const eventNames: string[] = []
+    const eventNamesFragments = eventName.split(':')
+    eventNames.push(eventNamesFragments[0])
+    eventNamesFragments.reduce((accumulator, currentValue) => {
+      const currentEventName = `${accumulator}:${currentValue}`
+      eventNames.push(currentEventName)
+      return currentEventName
+    })
+    return eventNames
+  }
+
   private checkManyAndThrow(config: CheckManyAndThrowConfig): boolean {
     for (const key in config) {
       if (this.checkAndThrow(config[key], key)) return true

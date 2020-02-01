@@ -32,3 +32,7 @@ test('Event Name and Namespaces', () => {
   expect(eventObject2.eventName).toBe('event')
   expect(eventObject2.namespaces.length).toBe(2)
 })
+
+test('Event Tree Names', () => {
+  expect(Radar.generateEventTreeNames('event:frag1:frag2')).toStrictEqual(['event', 'event:frag1', 'event:frag1:frag2'])
+})
