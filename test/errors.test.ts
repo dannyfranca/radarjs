@@ -19,4 +19,5 @@ test('Link errors', () => {
     radar.link('parent', 'child')
     radar.link('child', 'parent')
   }).toThrow()
+  // expect(() => radar.linkTree('foo.bar.baz.foo')).toThrow()
 })
