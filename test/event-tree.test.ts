@@ -11,6 +11,7 @@ test('Subscription and trigger event tree', async () => {
   radar.link('parent2', 'child4')
   radar.link('parent2', 'child5')
   radar.link('parent2', 'child6')
+  radar.link('parent3', 'child7')
   radar.link('grandparent', 'parent1')
   radar.linkTree('foo.bar.baz')
 
@@ -18,6 +19,7 @@ test('Subscription and trigger event tree', async () => {
     expect(toPromise('grandparent', val => val)).resolves.toEqual('info'),
     expect(toPromise('parent1', val => val)).resolves.toEqual('info'),
     expect(toPromise('parent2', val => val)).resolves.toEqual('info2'),
+    expect(toPromise('parent3', val => val)).resolves.toEqual('info3'),
     expect(toPromise('child1', val => val)).resolves.toEqual('info'),
     expect(toPromise('child2', val => val)).rejects.toEqual('timeout'),
     expect(toPromise('child3', val => val)).resolves.toEqual('info2'),
@@ -32,7 +34,8 @@ test('Subscription and trigger event tree', async () => {
   radar.emit('child1', 'info')
   radar.off('child5')
   radar.unlink('parent2', 'child6')
-  radar.broadcast('parent2', 'info2')
+  radar.asyncBroadcast('parent2', 'info2')
+  radar.asyncEmit('child7', 'info3')
   radar.broadcast('foo', 'foobar')
 
   return promise

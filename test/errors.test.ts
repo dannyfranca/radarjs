@@ -21,3 +21,9 @@ test('Link errors', () => {
   }).toThrow()
   // expect(() => radar.linkTree('foo.bar.baz.foo')).toThrow()
 })
+
+test('To promise error', () => {
+  expect(Radar.toPromise(() => {
+    throw new Error()
+  })).rejects.toBeInstanceOf(Error)
+})

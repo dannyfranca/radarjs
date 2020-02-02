@@ -123,6 +123,13 @@ export class Radar {
   }
 
   /**
+   * Same as trigger, but returns a Promise
+   */
+  asyncTrigger(eventName: string, ...args: any[]): Promise<void> {
+    return Radar.toPromise<void>(() => this.trigger(eventName, ...args))
+  }
+
+  /**
    * Alias to [[Radar.trigger]] method
    */
   next(eventName: string, ...args: any[]): void {
@@ -198,6 +205,13 @@ export class Radar {
   }
 
   /**
+   * Same as emit, but returns a Promise
+   */
+  asyncEmit(eventName: string, ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.emit(eventName, ...args))
+  }
+
+  /**
    * Trigger an event and their children with given data as arguments
    * @param eventName event name to trigger
    * @param args data to be sent as data with event to children
@@ -210,6 +224,13 @@ export class Radar {
   }
 
   /**
+   * Same as broadcast, but returns a Promise
+   */
+  asyncBroadcast(eventName: string, ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.broadcast(eventName, ...args))
+  }
+
+  /**
    * Check a relation between a parent and a child
    * @param parent parent event name
    * @param child child event name
@@ -217,6 +238,18 @@ export class Radar {
   hasChild(parent: string, child: string): boolean {
     const relation = this.getRelation(parent)
     return relation.children[child]
+  }
+
+  static toPromise<T = any>(arg: Function): Promise<T> {
+    return new Promise((resolve, reject) => {
+      let resolvedValue: any
+      try {
+        resolvedValue = arg()
+      } catch (error) {
+        reject(error)
+      }
+      resolve(resolvedValue)
+    })
   }
 
   private subscribeToSubject(
