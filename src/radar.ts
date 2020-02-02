@@ -48,6 +48,9 @@ export class Radar {
 
   private autoEventTree(eventName: string): void {
     const eventNames = Radar.generateEventTreeNames(eventName)
+
+    if (!eventNames.length) return
+
     eventNames.reduce((accumulator, currentValue) => {
       this.link(accumulator, currentValue)
       return currentValue
