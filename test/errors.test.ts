@@ -4,6 +4,7 @@ const radar = new Radar()
 
 test('Subscription errors', () => {
   expect(() => radar.on('', () => 'will throw')).toThrow()
+  expect(() => radar.on(':', () => 'will throw')).not.toThrow()
   expect(() => radar.on('.', () => 'will throw')).toThrow()
   expect(() => radar.on('.namespace', () => 'will throw')).toThrow()
 })

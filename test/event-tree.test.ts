@@ -14,6 +14,7 @@ test('Subscription and trigger event tree', async () => {
   radar.link('parent3', 'child7')
   radar.link('grandparent', 'parent1')
   radar.linkTree('foo.bar.baz')
+  radar.linkTree('')
 
   const promise = Promise.all([
     expect(toPromise('grandparent', val => val)).resolves.toEqual('info'),

@@ -59,7 +59,10 @@ export class Radar {
 
   static generateEventTreeNames(eventName: string): string[] {
     const eventNames: string[] = []
-    const eventNamesFragments = eventName.split(':')
+    const eventNamesFragments = eventName.split(':').filter(Boolean)
+
+    if (!eventNamesFragments.length) return []
+
     eventNames.push(eventNamesFragments[0])
     eventNamesFragments.reduce((accumulator, currentValue) => {
       const currentEventName = `${accumulator}:${currentValue}`
@@ -164,7 +167,7 @@ export class Radar {
    * ```
    */
   linkTree(stringTree: string): void {
-    const eventNames = stringTree.split('.')
+    const eventNames = stringTree.split('.').filter(Boolean)
 
     if (!eventNames.length) return
 
