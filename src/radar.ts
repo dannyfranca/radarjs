@@ -138,12 +138,33 @@ export class Radar {
     if (
       this.checkAndThrow(
         this.hasChild(childName, parentName),
-        `${childName} is already parent of ${parentName}. You cannot create a circular relation.`
+        `${childName} is already parent of ${parentName}.`
       )
     )
       return
 
     this.setRelation(parentName, childName)
+  }
+
+  /**
+   * Create a relation event tree
+   * @param stringTree event names separated by dots
+   * ```typescript
+   * radar.linkTree('foo.bar.baz')
+   * // same as
+   * radar.link('foo', 'bar')
+   * radar.link('bar', 'baz')
+   * ```
+   */
+  linkTree(stringTree: string): void {
+    const eventNames = stringTree.split('.')
+
+    if (!eventNames.length) return
+
+    eventNames.reduce((accumulator, currentValue) => {
+      this.link(accumulator, currentValue)
+      return currentValue
+    })
   }
 
   private setRelation(parentName: string, childName: string): void {
