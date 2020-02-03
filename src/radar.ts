@@ -6,14 +6,14 @@ import {
   SubjectTree,
   SubjectRelation,
   SubjectPool,
-  SubscriptionNamespaces,
+  SubscriptionTags,
   EventObject,
   SubscriptionCallback
 } from './types'
 
 export class Radar {
   private readonly _subjectPool: SubjectPool = {}
-  private readonly _subscriptionNamespaces: SubscriptionNamespaces = {}
+  private readonly _subscriptionTags: SubscriptionTags = {}
   private readonly _subjectTree: SubjectTree = {}
 
   /**
@@ -29,10 +29,10 @@ export class Radar {
 
   /**
    * Add a listener to an event with a given callback.
-   * @param eventString Event name with namespaces.
+   * @param eventString Event name with tags.
    * @param cb Callback receiving event data from arguments
    * ```typescript
-   * radar.on('event.namespace1.namespace2', (...args) => {...})
+   * radar.on('event.tag1.tag2', (...args) => {...})
    * ```
    */
   on(eventString: string, cb: SubscriptionCallback) {
@@ -43,14 +43,14 @@ export class Radar {
    * Same as [[Radar.on]], but synchronous
    */
   onSync(eventString: string, cb: SubscriptionCallback) {
-    const { eventName, namespaces } = Radar.formatEventString(eventString)
+    const { eventName, tags: tags } = Radar.formatEventString(eventString)
 
     if (this.checkAndThrow(!eventName, 'event must have a name')) return
 
     this.autoEventTree(eventName)
 
     const subscription = this.subscribeToSubject(eventName, cb)
-    this.subscribeToNamespaces(namespaces, subscription)
+    this.subscribeToTags(tags, subscription)
 
     return subscription
   }
@@ -90,10 +90,10 @@ export class Radar {
   }
 
   /**
-   * Remove listeners from an event of namespace
+   * Remove listeners from an event of tag
    * ```typescript
    * radar.off('event')
-   * radar.off('.namespace')
+   * radar.off('.tag')
    * ```
    */
   off(eventString: string) {
@@ -104,21 +104,21 @@ export class Radar {
    * Same as [[Radar.off]], but synchronous.
    */
   offSync(eventString: string): void {
-    const { eventName, namespaces } = Radar.formatEventString(eventString)
+    const { eventName, tags } = Radar.formatEventString(eventString)
 
     if (
       this.checkManyAndThrow({
-        'To turn events off, reference a name or namespace, not both':
-          namespaces.length && eventName,
-        'eventString must reference an event name or namespace':
-          !namespaces.length && !eventName,
+        'To turn events off, reference a name or tag, not both':
+          tags.length && eventName,
+        'eventString must reference an event name or tag':
+          !tags.length && !eventName,
         "Private events can't be disabled":
           eventName && eventName.startsWith('$')
       })
     )
       return
 
-    if (namespaces.length) this.unsubscribeNamespaces(namespaces)
+    if (tags.length) this.unsubscribeTags(tags)
     else this.unsubscribeEvent(eventName)
   }
 
@@ -138,6 +138,10 @@ export class Radar {
    * Same as [[Radar.trigger]], but synchronous
    */
   triggerSync(eventName: string, ...args: any[]): void {
+    this.triggerSubject(eventName, ...args)
+  }
+
+  private triggerSubject(eventName: string, ...args: any[]): void {
     const subject = this._subjectPool[eventName]
     if (subject) subject.next(args)
   }
@@ -291,10 +295,10 @@ export class Radar {
     return this._subjectTree[eventName]
   }
 
-  private getSubscriptionNamespace(namespace: string): Subscription {
-    this._subscriptionNamespaces[namespace] =
-      this._subscriptionNamespaces[namespace] || new Subscription()
-    return this._subscriptionNamespaces[namespace]
+  private getSubscriptionTag(tag: string): Subscription {
+    this._subscriptionTags[tag] =
+      this._subscriptionTags[tag] || new Subscription()
+    return this._subscriptionTags[tag]
   }
 
   private unsubscribeEvent(eventName: string): void {
@@ -303,23 +307,20 @@ export class Radar {
     delete this._subjectPool[eventName]
   }
 
-  private subscribeToNamespaces(
-    namespaces: string[],
-    subscription: Subscription
-  ): void {
-    namespaces.forEach(namespace => {
-      const namespaceSubscription = this.getSubscriptionNamespace(namespace)
-      namespaceSubscription.add(subscription)
+  private subscribeToTags(tag: string[], subscription: Subscription): void {
+    tag.forEach(tag => {
+      const tagSubscription = this.getSubscriptionTag(tag)
+      tagSubscription.add(subscription)
     })
   }
 
-  private unsubscribeNamespaces(namespaces: string[]): void {
-    namespaces.forEach(namespace => this.unsubscribeNamespace(namespace))
+  private unsubscribeTags(tags: string[]): void {
+    tags.forEach(tag => this.unsubscribeTag(tag))
   }
 
-  private unsubscribeNamespace(namespace: string): void {
-    const namespaceSubscription = this._subscriptionNamespaces[namespace]
-    if (namespaceSubscription) namespaceSubscription.unsubscribe()
+  private unsubscribeTag(tag: string): void {
+    const tagSubscription = this._subscriptionTags[tag]
+    if (tagSubscription) tagSubscription.unsubscribe()
   }
 
   static formatEventString(eventString: string): EventObject {
@@ -328,7 +329,7 @@ export class Radar {
     eventArray.shift()
     return {
       eventName,
-      namespaces: eventArray.filter(Boolean)
+      tags: eventArray.filter(Boolean)
     }
   }
 

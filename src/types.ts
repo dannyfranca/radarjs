@@ -6,13 +6,13 @@ export interface SubjectPool {
   [key: string]: EventSubject
 }
 
-export interface SubscriptionNamespaces {
+export interface SubscriptionTags {
   [key: string]: Subscription
 }
 
 export interface EventObject {
   eventName: string
-  namespaces: string[]
+  tags: string[]
 }
 
 export interface EventRelationObject {
