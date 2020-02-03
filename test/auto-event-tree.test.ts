@@ -20,9 +20,9 @@ test('Autolink Events', async () => {
     expect(toPromise('event4:frag1:frag2', val => val)).resolves.toEqual('info4'),
   ])
 
-  radar.emit('event1:frag1:frag2', 'info')
+  radar.emitSync('event1:frag1:frag2', 'info')
   radar.emit('event2:frag1', 'info2')
-  radar.broadcast('event3', 'info3')
+  radar.broadcastSync('event3', 'info3')
   radar.off('event4')
   radar.off('event4:frag1')
   radar.broadcast('event4', 'info4')

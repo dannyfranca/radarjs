@@ -16,12 +16,12 @@ test('Subscription and trigger', async () => {
 
   radar.off('.ns1')
   radar.off('.ns3')
-  radar.trigger('event', 'info')
-  radar.asyncTrigger('event2', 'info2')
-  radar.trigger('event3', 'info3')
-  radar.unsubscribe('event4')
-  radar.next('event4', 'info4')
-  radar.unsubscribe('event4')
+  radar.triggerSync('event', 'info')
+  radar.trigger('event2', 'info2')
+  radar.triggerSync('event3', 'info3')
+  radar.off('event4')
+  radar.triggerSync('event4', 'info4')
+  radar.off('event4')
 
   return promise
 })

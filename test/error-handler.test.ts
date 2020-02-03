@@ -8,8 +8,8 @@ test('Setting new error handler', () => {
       console.log(error.message)
     }
   ).not.toThrow()
-  expect(() => radar.on('', () => 'will not throw')).not.toThrow()
-  expect(() => radar.off('')).not.toThrow()
+  expect(() => radar.onSync('', () => 'will not throw')).not.toThrow()
+  expect(() => radar.offSync('')).not.toThrow()
   expect(() => {
     radar.link('parent', 'child')
     radar.link('child', 'parent')

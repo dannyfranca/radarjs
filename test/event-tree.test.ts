@@ -35,8 +35,8 @@ test('Subscription and trigger event tree', async () => {
   radar.emit('child1', 'info')
   radar.off('child5')
   radar.unlink('parent2', 'child6')
-  radar.asyncBroadcast('parent2', 'info2')
-  radar.asyncEmit('child7', 'info3')
+  radar.broadcast('parent2', 'info2')
+  radar.emit('child7', 'info3')
   radar.broadcast('foo', 'foobar')
 
   return promise

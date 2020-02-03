@@ -35,7 +35,14 @@ export class Radar {
    * radar.on('event.namespace1.namespace2', (...args) => {...})
    * ```
    */
-  on(eventString: string, cb: SubscriptionCallback): void {
+  on(eventString: string, cb: SubscriptionCallback) {
+    return Radar.toPromise(() => this.onSync(eventString, cb))
+  }
+
+  /**
+   * Same as [[Radar.on]], but synchronous
+   */
+  onSync(eventString: string, cb: SubscriptionCallback) {
     const { eventName, namespaces } = Radar.formatEventString(eventString)
 
     if (this.checkAndThrow(!eventName, 'event must have a name')) return
@@ -44,6 +51,8 @@ export class Radar {
 
     const subscription = this.subscribeToSubject(eventName, cb)
     this.subscribeToNamespaces(namespaces, subscription)
+
+    return subscription
   }
 
   private autoEventTree(eventName: string): void {
@@ -81,20 +90,20 @@ export class Radar {
   }
 
   /**
-   * Alias to [[Radar.on]] method
-   */
-  subscribe(name: string, cb: SubscriptionCallback) {
-    return this.on(name, cb)
-  }
-
-  /**
    * Remove listeners from an event of namespace
    * ```typescript
    * radar.off('event')
    * radar.off('.namespace')
    * ```
    */
-  off(eventString: string): void {
+  off(eventString: string) {
+    return Radar.toPromise(() => this.offSync(eventString))
+  }
+
+  /**
+   * Same as [[Radar.off]], but synchronous.
+   */
+  offSync(eventString: string): void {
     const { eventName, namespaces } = Radar.formatEventString(eventString)
 
     if (
@@ -114,13 +123,6 @@ export class Radar {
   }
 
   /**
-   * Alias to [[Radar.off]] method
-   */
-  unsubscribe(eventName: string) {
-    return this.off(eventName)
-  }
-
-  /**
    * Trigger an event with given data as arguments
    * @param eventName event name to trigger
    * @param args data to be sent as data with event
@@ -128,23 +130,54 @@ export class Radar {
    * radar.trigger('event', ...data)
    * ```
    */
-  trigger(eventName: string, ...args: any[]): void {
+  trigger(eventName: string, ...args: any[]): Promise<void> {
+    return Radar.toPromise<void>(() => this.triggerSync(eventName, ...args))
+  }
+
+  /**
+   * Same as [[Radar.trigger]], but synchronous
+   */
+  triggerSync(eventName: string, ...args: any[]): void {
     const subject = this._subjectPool[eventName]
     if (subject) subject.next(args)
   }
 
   /**
-   * Same as trigger, but returns a Promise
+   * Trigger an event and their parents with given data as arguments
+   * @param eventName event name to emit
+   * @param args data to be sent as data with event to parents
    */
-  asyncTrigger(eventName: string, ...args: any[]): Promise<void> {
-    return Radar.toPromise<void>(() => this.trigger(eventName, ...args))
+  emit(eventName: string, ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.emitSync(eventName, ...args))
   }
 
   /**
-   * Alias to [[Radar.trigger]] method
+   * Same as [[Radar.emit]], but synchronous
    */
-  next(eventName: string, ...args: any[]): void {
-    this.trigger(eventName, ...args)
+  emitSync(eventName: string, ...args: any[]): void {
+    this.triggerSync(eventName, ...args)
+    for (const name of this.getParentNames(eventName)) {
+      this.emitSync(name, ...args)
+    }
+  }
+
+  /**
+   * Trigger an event and their children with given data as arguments
+   * @param eventName event name to trigger
+   * @param args data to be sent as data with event to children
+   */
+  broadcast(eventName: string, ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.broadcastSync(eventName, ...args))
+  }
+
+  /**
+   * Same as [[Radar.broadcast]], but synchronous
+   */
+  broadcastSync(eventName: string, ...args: any[]): void {
+    this.triggerSync(eventName, ...args)
+    for (const name of this.getChildrenNames(eventName)) {
+      this.broadcastSync(name, ...args)
+    }
   }
 
   /**
@@ -201,44 +234,6 @@ export class Radar {
   unlink(parentName: string, childName: string) {
     const relation = this.getRelation(parentName)
     delete relation.children[childName]
-  }
-
-  /**
-   * Trigger an event and their parents with given data as arguments
-   * @param eventName event name to emit
-   * @param args data to be sent as data with event to parents
-   */
-  emit(eventName: string, ...args: any[]): void {
-    this.trigger(eventName, ...args)
-    for (const name of this.getParentNames(eventName)) {
-      this.emit(name, ...args)
-    }
-  }
-
-  /**
-   * Same as emit, but returns a Promise
-   */
-  asyncEmit(eventName: string, ...args: any[]): Promise<void> {
-    return Radar.toPromise(() => this.emit(eventName, ...args))
-  }
-
-  /**
-   * Trigger an event and their children with given data as arguments
-   * @param eventName event name to trigger
-   * @param args data to be sent as data with event to children
-   */
-  broadcast(eventName: string, ...args: any[]): void {
-    this.trigger(eventName, ...args)
-    for (const name of this.getChildrenNames(eventName)) {
-      this.broadcast(name, ...args)
-    }
-  }
-
-  /**
-   * Same as broadcast, but returns a Promise
-   */
-  asyncBroadcast(eventName: string, ...args: any[]): Promise<void> {
-    return Radar.toPromise(() => this.broadcast(eventName, ...args))
   }
 
   /**
@@ -347,7 +342,7 @@ export class Radar {
   private checkAndThrow(test: any, errorMessage: string): boolean {
     if (!test) return false
     const error = new Error(errorMessage)
-    this.trigger('$error', error)
+    this.triggerSync('$error', error)
     this.errorHandler(error)
     return true
   }

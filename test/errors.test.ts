@@ -3,16 +3,16 @@ import { Radar } from '../src/radar'
 const radar = new Radar()
 
 test('Subscription errors', () => {
-  expect(() => radar.on('', () => 'will throw')).toThrow()
-  expect(() => radar.on(':', () => 'will throw')).not.toThrow()
-  expect(() => radar.on('.', () => 'will throw')).toThrow()
-  expect(() => radar.on('.namespace', () => 'will throw')).toThrow()
+  expect(radar.on('', () => 'will throw')).rejects.toBeInstanceOf(Error)
+  expect(() => radar.onSync(':', () => 'will throw')).not.toThrow()
+  expect(() => radar.onSync('.', () => 'will throw')).toThrow()
+  expect(() => radar.onSync('.namespace', () => 'will throw')).toThrow()
 })
 
 test('Unsubscription errors', () => {
-  expect(() => radar.off('')).toThrow()
-  expect(() => radar.off('.')).toThrow()
-  expect(() => radar.off('event.namespace')).toThrow()
+  expect(() => radar.offSync('')).toThrow()
+  expect(() => radar.offSync('.')).toThrow()
+  expect(() => radar.offSync('event.namespace')).toThrow()
 })
 
 test('Link errors', () => {
