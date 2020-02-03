@@ -63,13 +63,21 @@ export class Radar {
 
     if (!eventNamesFragments.length) return []
 
+    Radar.insertEventTreeNames(eventNames, eventNamesFragments)
+
+    return eventNames
+  }
+
+  private static insertEventTreeNames(
+    eventNames: string[],
+    eventNamesFragments: string[]
+  ): void {
     eventNames.push(eventNamesFragments[0])
     eventNamesFragments.reduce((accumulator, currentValue) => {
       const currentEventName = `${accumulator}:${currentValue}`
       eventNames.push(currentEventName)
       return currentEventName
     })
-    return eventNames
   }
 
   /**
