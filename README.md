@@ -1,5 +1,5 @@
 <h1 align="center">dannyfranca/radarjs</h1>
-<p align="center">Event Manager, with namespaces, emitting, bubbling and broadcasting, made with RxJS Subjects and inspired by jQuery event API.</p>
+<p align="center">Modern and Robust Event Emitter, with tagging, emitting and broadcasting. Internally uses Promises and RxJS Subjects.</p>
 <p align="center">
 
 <a href="https://npmjs.com/package/@dannyfranca/radarjs" target="_blank">
@@ -48,7 +48,7 @@ const radar = new Radar()
 <script src="unpkg.com/radarjs"></script>
 
 <!-- Specific Version -->
-<script src="unpkg.com/radarjs@0.1.0/lib/radar.umd.js"></script>
+<script src="unpkg.com/radarjs@0.3.0/lib/radar.umd.js"></script>
 ```
 
 ## Usage
@@ -69,11 +69,8 @@ radar.on('notify', ({ type }, ...data) => {
   console.log(data)
 }
 
-// subscribe is an alias
-radar.subscribe('logout', () => {/*...*/})
-
 // can use namespaces
-radar.on('notify.namespace1.namespace2', () => {/*...*/})
+radar.on('notify.namespace1.namespace2', (...data) => {/*...*/})
 ```
 
 ### Unsubscribe from Events
@@ -82,11 +79,20 @@ radar.on('notify.namespace1.namespace2', () => {/*...*/})
 // by event name
 radar.off('notify')
 
-// unsubscribe is an alias
-radar.unsubscribe('logout')
-
 // by namespace
 radar.off('.namespace1')
+
+// by Subscription
+const subscribeThenUnsubscribe = async () => {
+  const subscription = await radar.on('event', (...data) => {/*...*/})
+  subscription.unsubscribe()
+}
+
+subscribeThenUnsubscribe()
+
+// by Subscription (sync)
+const subscription = await radar.onSync('event', (...data) => {/*...*/})
+subscription.unsubscribe()
 ```
 
 ### Trigger Events
@@ -100,12 +106,9 @@ radar.trigger('notify', {
 
 // pass any number of data
 radar.trigger('notify', notification, ...data)
-
-// next is an alias
-radar.next('logout')
 ```
 
-### Multilevel Events
+### MultiLevel Events
 
 ```js
 // set child event
@@ -129,6 +132,48 @@ radar.emit('child', ...data)
 // will trigger only grandparent
 radar.emit('grandparent', ...data)
 ```
+
+### Sync Variants
+
+Every public methods returns Promises, but each one has a sync variant, with same syntax.
+
+```js
+radar.on('event', ...data) // returns Promise<Subscription>
+radar.onSync('event', ...data) // returns Subscription
+radar.trigger('event', ...data) // returns Promise<void>
+radar.triggerSync('event', ...data) // returns void
+// and so on...
+```
+
+### MultiTriggering
+
+To trigger/emit/broadcast many events with same data, you can use arrays of strings or a single string with event names separated by dots. Each event name is resolved by a glob pattern (powered by [micromatch](https://github.com/micromatch/micromatch))!
+
+```js
+// will trigger "foo" and "bar", sending same datas
+radar.trigger('foo.bar', ...data)
+// same as
+radar.trigger(['foo', 'bar'], ...data)
+
+
+// with micromatch
+radar.on('foo', () => {/*...*/})
+radar.on('bar', () => {/*...*/})
+radar.on('baz', () => {/*...*/})
+radar.on('boom', () => {/*...*/})
+
+// will trigger "bar" and "baz"
+radar.trigger('ba*', ...data) 
+// will trigger "boom"
+radar.trigger('b*m', ...data)
+
+// many micromatches allowed!
+// will trigger "bar", "baz" and  "boom"
+radar.triggerMany('ba*.bo*', ...data)
+radar.triggerMany(['ba*', 'bo*'], ...data)
+```
+
+See all glob possibilities in [micromatch](https://github.com/micromatch/micromatch)
 
 #### Auto Link
 
