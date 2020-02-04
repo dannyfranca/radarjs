@@ -124,23 +124,35 @@ export class Radar {
   }
 
   /**
-   * Trigger an event with given data as arguments
-   * @param eventName event name to trigger
+   * Trigger events with given names and data as arguments
+   * @param eventName event names to trigger. Names can be a string separated by dots or an array of strings
    * @param args data to be sent as data with event
    * ```typescript
    * radar.trigger('event', ...data)
    * ```
    */
-  trigger(eventName: string, ...args: any[]) {
-    return Radar.toPromise<void>(() => this.triggerSync(eventName, ...args))
+  trigger(eventNames: string | string[], ...args: any[]) {
+    return Radar.toPromise<void>(() => this.triggerSync(eventNames, ...args))
+  }
+
+  /**
+   * Same as [[Radar.triggerSync]], but trigger many events
+   */
+  triggerSync(eventNames: string | string[], ...args: any[]): void {
+    for (const eventname of this.makeEventNamesArray(eventNames))
+      this.triggerOneSync(eventname, ...args)
   }
 
   /**
    * Same as [[Radar.trigger]], but synchronous
    */
-  triggerSync(eventName: string, ...args: any[]): void {
-    const subjectPool = matchKeys(this._subjectPool, eventName)
+  triggerOneSync(eventName: string, ...args: any[]): void {
+    const subjectPool = this.matchKeys(eventName)
     this.triggerSubjectPool(subjectPool as SubjectPool, args)
+  }
+
+  private matchKeys(eventName: string) {
+    return matchKeys(this._subjectPool, eventName)
   }
 
   private triggerSubjectPool(subjectPool: SubjectPool, args: any[]): void {
@@ -148,88 +160,57 @@ export class Radar {
   }
 
   /**
-   * Same as [[Radar.trigger]], but trigger many events
-   */
-  triggerMany(eventNames: string | string[], ...args: any[]) {
-    return Radar.toPromise<void>(() =>
-      this.triggerManySync(eventNames, ...args)
-    )
-  }
-
-  /**
-   * Same as [[Radar.triggerSync]], but trigger many events
-   */
-  triggerManySync(eventNames: string | string[], ...args: any[]): void {
-    for (const eventname of this.makeEventNamesArray(eventNames))
-      this.triggerSync(eventname, ...args)
-  }
-
-  /**
-   * Trigger an event and their parents with given data as arguments
-   * @param eventName event name to emit
+   * Trigger, and emit to parents, events with given names and data as arguments
+   * @param eventName event name to emit. Names can be a string separated by dots or an array of strings
    * @param args data to be sent as data with event to parents
    */
-  emit(eventName: string, ...args: any[]): Promise<void> {
-    return Radar.toPromise(() => this.emitSync(eventName, ...args))
-  }
-
-  /**
-   * Same as [[Radar.emit]], but synchronous
-   */
-  emitSync(eventName: string, ...args: any[]): void {
-    this.triggerSync(eventName, ...args)
-    for (const name of this.getParentNames(eventName)) {
-      this.emitSync(name, ...args)
-    }
-  }
-
-  /**
-   * Same as [[Radar.emit]], but emits many events
-   */
-  emitMany(eventNames: string | string[], ...args: any[]): Promise<void> {
-    return Radar.toPromise(() => this.emitManySync(eventNames, ...args))
+  emit(eventNames: string | string[], ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.emitSync(eventNames, ...args))
   }
 
   /**
    * Same as [[Radar.emitSync]], but emits many events
    */
-  emitManySync(eventNames: string | string[], ...args: any[]): void {
+  emitSync(eventNames: string | string[], ...args: any[]): void {
     for (const eventName of this.makeEventNamesArray(eventNames))
-      this.emitSync(eventName, ...args)
+      this.emitOneSync(eventName, ...args)
   }
 
   /**
-   * Trigger an event and their children with given data as arguments
-   * @param eventName event name to trigger
-   * @param args data to be sent as data with event to children
+   * Same as [[Radar.emit]], but synchronous
    */
-  broadcast(eventName: string, ...args: any[]): Promise<void> {
-    return Radar.toPromise(() => this.broadcastSync(eventName, ...args))
-  }
-
-  /**
-   * Same as [[Radar.broadcast]], but synchronous
-   */
-  broadcastSync(eventName: string, ...args: any[]): void {
-    this.triggerSync(eventName, ...args)
-    for (const name of this.getChildrenNames(eventName)) {
-      this.broadcastSync(name, ...args)
+  emitOneSync(eventName: string, ...args: any[]): void {
+    this.triggerOneSync(eventName, ...args)
+    for (const name of this.getParentNames(eventName)) {
+      this.emitOneSync(name, ...args)
     }
   }
 
   /**
-   * Same as [[Radar.broadcast]], but broadcasts many events
+   * Trigger, and broadcast to children, events with given names and data as arguments
+   * @param eventName event name to broadcast. Names can be a string separated by dots or an array of strings
+   * @param args data to be sent as data with event to children
    */
-  broadcastMany(eventNames: string | string[], ...args: any[]): Promise<void> {
-    return Radar.toPromise(() => this.broadcastManySync(eventNames, ...args))
+  broadcast(eventNames: string | string[], ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.broadcastSync(eventNames, ...args))
   }
 
   /**
    * Same as [[Radar.broadcastSync]], but broadcasts many events
    */
-  broadcastManySync(eventNames: string | string[], ...args: any[]): void {
+  broadcastSync(eventNames: string | string[], ...args: any[]): void {
     for (const eventName of this.makeEventNamesArray(eventNames))
-      this.broadcastSync(eventName, ...args)
+      this.broadcastOneSync(eventName, ...args)
+  }
+
+  /**
+   * Same as [[Radar.broadcast]], but synchronous
+   */
+  broadcastOneSync(eventName: string, ...args: any[]): void {
+    this.triggerOneSync(eventName, ...args)
+    for (const name of this.getChildrenNames(eventName)) {
+      this.broadcastOneSync(name, ...args)
+    }
   }
 
   private makeEventNamesArray(eventNames: string | string[]): string[] {
@@ -397,7 +378,7 @@ export class Radar {
   private checkAndThrow(test: any, errorMessage: string): boolean {
     if (!test) return false
     const error = new Error(errorMessage)
-    this.triggerSync('$error', error)
+    this.triggerOneSync('$error', error)
     this.errorHandler(error)
     return true
   }

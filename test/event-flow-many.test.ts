@@ -11,7 +11,7 @@ test('Trigger Many', async () => {
     expect(toPromise('trigger3', val => val)).resolves.toEqual('info'),
   ])
 
-  radar.triggerMany('trigger.trigger2.trigger3', 'info')
+  radar.trigger('trigger.trigger2.trigger3', 'info')
 
   return promise
 })
@@ -36,7 +36,7 @@ test('Emit Many', async () => {
     expect(toPromise('emit-child8', val => val)).rejects.toEqual('timeout'),
   ])
 
-  radar.emitMany(['emit-child4', 'emit-child5', 'emit-child6'], 'info')
+  radar.emit(['emit-child4', 'emit-child5', 'emit-child6'], 'info')
 
   return promise
 })
@@ -60,7 +60,7 @@ test('Broadcast Many', async () => {
     expect(toPromise('broadcast-child6', val => val)).rejects.toEqual('timeout'),
   ])
 
-  radar.broadcastMany('broadcast1.broadcast2', 'info')
+  radar.broadcast('broadcast1.broadcast2', 'info')
 
   return promise
 })
