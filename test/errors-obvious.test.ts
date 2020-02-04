@@ -17,8 +17,8 @@ test('Unsubscription errors', () => {
 
 test('Link errors', () => {
   expect(() => {
-    radar.link('parent', 'child')
-    radar.link('child', 'parent')
+    radar.linkSync('parent', 'child')
+    radar.linkSync('child', 'parent')
   }).toThrow()
   // expect(() => radar.linkTree('foo.bar.baz.foo')).toThrow()
 })

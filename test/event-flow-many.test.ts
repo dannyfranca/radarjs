@@ -17,11 +17,13 @@ test('Trigger Many', async () => {
 })
 
 test('Emit Many', async () => {
-  radar.linkTree('emit.emit-child1.emit-child4')
-  radar.linkTree('emit.emit-child2.emit-child5')
-  radar.linkTree('emit2.emit-child3.emit-child6')
-  radar.linkTree('emit2.emit-child3.emit-child7')
-  radar.link('emit2', 'emit-child8')
+  await Promise.all([
+    radar.linkTree('emit.emit-child1.emit-child4'),
+    radar.linkTree('emit.emit-child2.emit-child5'),
+    radar.linkTree('emit2.emit-child3.emit-child6'),
+    radar.linkTree('emit2.emit-child3.emit-child7'),
+    radar.link('emit2', 'emit-child8')
+  ])
 
   const promise = Promise.all([
     expect(toPromise('emit', val => val)).resolves.toEqual('info'),
@@ -42,11 +44,13 @@ test('Emit Many', async () => {
 })
 
 test('Broadcast Many', async () => {
-  radar.linkTree('broadcast1.broadcast-child1')
-  radar.linkTree('broadcast2.broadcast-child2')
-  radar.linkTree('broadcast2.broadcast-child3.broadcast-child4')
-  radar.linkTree('broadcast2.broadcast-child3.broadcast-child5')
-  radar.linkTree('broadcast3.broadcast-child6')
+  await radar.linkTree([
+    'broadcast1.broadcast-child1',
+    'broadcast2.broadcast-child2',
+    'broadcast2.broadcast-child3.broadcast-child4',
+    'broadcast2.broadcast-child3.broadcast-child5',
+    'broadcast3.broadcast-child6'
+  ])
 
   const promise = Promise.all([
     expect(toPromise('broadcast1', val => val)).resolves.toEqual('info'),

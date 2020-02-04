@@ -62,7 +62,7 @@ export class Radar {
     if (!eventNames.length) return
 
     eventNames.reduce((accumulator, currentValue) => {
-      this.link(accumulator, currentValue)
+      this.linkSync(accumulator, currentValue)
       return currentValue
     })
   }
@@ -139,7 +139,7 @@ export class Radar {
    * Same as [[Radar.triggerSync]], but trigger many events
    */
   triggerSync(eventNames: string | string[], ...args: any[]): void {
-    for (const eventname of this.makeEventNamesArray(eventNames))
+    for (const eventname of this.makeStringArray(eventNames))
       this.triggerOneSync(eventname, ...args)
   }
 
@@ -172,7 +172,7 @@ export class Radar {
    * Same as [[Radar.emitSync]], but emits many events
    */
   emitSync(eventNames: string | string[], ...args: any[]): void {
-    for (const eventName of this.makeEventNamesArray(eventNames))
+    for (const eventName of this.makeStringArray(eventNames))
       this.emitOneSync(eventName, ...args)
   }
 
@@ -199,7 +199,7 @@ export class Radar {
    * Same as [[Radar.broadcastSync]], but broadcasts many events
    */
   broadcastSync(eventNames: string | string[], ...args: any[]): void {
-    for (const eventName of this.makeEventNamesArray(eventNames))
+    for (const eventName of this.makeStringArray(eventNames))
       this.broadcastOneSync(eventName, ...args)
   }
 
@@ -213,7 +213,7 @@ export class Radar {
     }
   }
 
-  private makeEventNamesArray(eventNames: string | string[]): string[] {
+  private makeStringArray(eventNames: string | string[]): string[] {
     if (typeof eventNames == 'string')
       return eventNames.split('.').filter(Boolean)
     return eventNames
@@ -224,7 +224,14 @@ export class Radar {
    * @param parentName event name to be parent
    * @param childName event name to be child
    */
-  link(parentName: string, childName: string): void {
+  link(parentName: string, childName: string) {
+    return Radar.toPromise(() => this.linkSync(parentName, childName))
+  }
+
+  /**
+   * Same as [[Radar.link]], but synchronous
+   */
+  linkSync(parentName: string, childName: string): void {
     if (
       this.checkAndThrow(
         this.hasChild(childName, parentName),
@@ -238,21 +245,42 @@ export class Radar {
 
   /**
    * Create a relation event tree
-   * @param stringTree event names separated by dots
+   * @param stringTree string or array of event names separated by dots
    * ```typescript
    * radar.linkTree('foo.bar.baz')
    * // same as
    * radar.link('foo', 'bar')
    * radar.link('bar', 'baz')
+   *
+   * // or, create many relation branches, respecting link limitations, an event can only have one parent
+   * radar.linkTree([
+   *  'foo.bar.baz',
+   *  'parent.child'
+   * ])
    * ```
    */
-  linkTree(stringTree: string): void {
+  linkTree(stringTree: string | string[]) {
+    return Radar.toPromise(() => this.linkTreeSync(stringTree))
+  }
+
+  /**
+   * Same as [[Radar.linkTree]], but synchronous
+   */
+  linkTreeSync(stringTree: string | string[]) {
+    if (typeof stringTree == 'string') return this.linkBranchSync(stringTree)
+    for (const stringBranch of stringTree) this.linkBranchSync(stringBranch)
+  }
+
+  /**
+   * Same as [[Radar.linkTree]], but synchronous
+   */
+  linkBranchSync(stringTree: string): void {
     const eventNames = stringTree.split('.').filter(Boolean)
 
     if (!eventNames.length) return
 
     eventNames.reduce((accumulator, currentValue) => {
-      this.link(accumulator, currentValue)
+      this.linkSync(accumulator, currentValue)
       return currentValue
     })
   }
@@ -271,6 +299,13 @@ export class Radar {
    * @param childName event name to be child
    */
   unlink(parentName: string, childName: string) {
+    return Radar.toPromise(() => this.unlinkSync(parentName, childName))
+  }
+
+  /**
+   * Same as [[Radar.unlink]], but synchronous
+   */
+  unlinkSync(parentName: string, childName: string) {
     const relation = this.getRelation(parentName)
     delete relation.children[childName]
   }

@@ -4,7 +4,7 @@ import { subcribeToPromiseFactory } from '../src/helpers'
 const radar = new Radar()
 const toPromise = subcribeToPromiseFactory(radar)
 
-test('Subscription and trigger', async () => {
+test('Simple Event Flow', async () => {
   const promise = Promise.all([
     expect(toPromise('event', val => val)).resolves.toEqual('info'),
     expect(toPromise('event.ns1', val => val)).rejects.toEqual('timeout'),
