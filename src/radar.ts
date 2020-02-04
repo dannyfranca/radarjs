@@ -181,9 +181,8 @@ export class Radar {
    */
   emitOneSync(eventName: string, ...args: any[]): void {
     this.triggerOneSync(eventName, ...args)
-    for (const name of this.getParentNames(eventName)) {
-      this.emitOneSync(name, ...args)
-    }
+    const name = this.getParentName(eventName)
+    if (name) this.emitOneSync(name, ...args)
   }
 
   /**
@@ -233,14 +232,46 @@ export class Radar {
    */
   linkSync(parentName: string, childName: string): void {
     if (
-      this.checkAndThrow(
-        this.hasChild(childName, parentName),
-        `${childName} is already parent of ${parentName}.`
-      )
+      this.checkManyAndThrow({
+        [`${childName} already has a parent`]: this.hasParent(
+          childName,
+          parentName
+        ),
+        [`${childName} is already parent of ${parentName}`]: this.getChild(
+          childName,
+          parentName
+        )
+      })
     )
       return
 
     this.setRelation(parentName, childName)
+  }
+
+  hasParent(child: string, ignoreParent?: string): boolean {
+    const parentName = this.getRelation(child).parent.name
+    if (!parentName) return false
+    return parentName !== ignoreParent
+  }
+
+  /**
+   * Check a relation between a parent and a child
+   * @param parent parent event name
+   * @param child child event name
+   */
+  getChild(parent: string, child: string) {
+    return this.getRelation(parent).children[child]
+  }
+
+  private setRelation(parentName: string, childName: string): void {
+    const parentRelation = this.getRelation(parentName)
+    parentRelation.children[childName] = this.getRelation(childName)
+
+    const childRelation = this.getRelation(childName)
+    childRelation.parent = {
+      name: parentName,
+      relation: this.getRelation(childName)
+    }
   }
 
   /**
@@ -285,14 +316,6 @@ export class Radar {
     })
   }
 
-  private setRelation(parentName: string, childName: string): void {
-    const parentRelation = this.getRelation(parentName)
-    parentRelation.children[childName] = true
-
-    const childRelation = this.getRelation(childName)
-    childRelation.parents[parentName] = true
-  }
-
   /**
    * Destroy a relation between a parent event and a child one
    * @param parentName event name to be parent
@@ -308,16 +331,6 @@ export class Radar {
   unlinkSync(parentName: string, childName: string) {
     const relation = this.getRelation(parentName)
     delete relation.children[childName]
-  }
-
-  /**
-   * Check a relation between a parent and a child
-   * @param parent parent event name
-   * @param child child event name
-   */
-  hasChild(parent: string, child: string): boolean {
-    const relation = this.getRelation(parent)
-    return relation.children[child]
   }
 
   static toPromise<T = any>(arg: Function): Promise<T> {
@@ -341,9 +354,8 @@ export class Radar {
     })
   }
 
-  private getParentNames(eventName: string) {
-    const { parents } = this.getRelation(eventName)
-    return Object.keys(parents)
+  private getParentName(eventName: string) {
+    return this.getRelation(eventName).parent.name
   }
 
   private getChildrenNames(eventName: string) {
@@ -359,7 +371,10 @@ export class Radar {
 
   private getRelation(eventName: string): SubjectRelation {
     this._subjectTree[eventName] = this._subjectTree[eventName] || {
-      parents: {},
+      parent: {
+        name: undefined,
+        relation: {}
+      },
       children: {}
     }
     return this._subjectTree[eventName]

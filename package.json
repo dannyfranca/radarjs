@@ -1,6 +1,6 @@
 {
   "name": "@dannyfranca/radarjs",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Modern and Robust Event Emitter, with tagging, emitting and broadcasting. Internally uses Promises and RxJS Subjects.",
   "license": "MIT",
   "author": {

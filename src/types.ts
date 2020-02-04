@@ -16,12 +16,17 @@ export interface EventObject {
 }
 
 export interface EventRelationObject {
-  [key: string]: true
+  [key: string]: SubjectRelation
 }
 
 export interface SubjectRelation {
-  parents: EventRelationObject
-  children: EventRelationObject
+  parent: {
+    name: string | undefined
+    relation: SubjectRelation
+  }
+  children: {
+    [key: string]: SubjectRelation
+  }
 }
 
 export interface SubjectTree {
