@@ -57,7 +57,7 @@ export class Radar {
   }
 
   private autoEventTree(eventName: string): void {
-    const eventNames = Radar.generateEventTreeNames(eventName)
+    const eventNames = Radar.generateAutoEventTreeNames(eventName)
 
     if (!eventNames.length) return
 
@@ -67,7 +67,7 @@ export class Radar {
     })
   }
 
-  static generateEventTreeNames(eventName: string): string[] {
+  static generateAutoEventTreeNames(eventName: string): string[] {
     const eventNames: string[] = []
     const eventNamesFragments = eventName.split(':').filter(Boolean)
 
