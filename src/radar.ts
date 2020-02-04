@@ -1,4 +1,5 @@
 import { Subject, Subscription } from 'rxjs'
+import { matchKeys } from 'micromatch'
 import {
   EventSubject,
   CheckManyAndThrowConfig,
@@ -130,7 +131,7 @@ export class Radar {
    * radar.trigger('event', ...data)
    * ```
    */
-  trigger(eventName: string, ...args: any[]): Promise<void> {
+  trigger(eventName: string, ...args: any[]) {
     return Radar.toPromise<void>(() => this.triggerSync(eventName, ...args))
   }
 
@@ -138,12 +139,29 @@ export class Radar {
    * Same as [[Radar.trigger]], but synchronous
    */
   triggerSync(eventName: string, ...args: any[]): void {
-    this.triggerSubject(eventName, ...args)
+    const subjectPool = matchKeys(this._subjectPool, eventName)
+    this.triggerSubjectPool(subjectPool as SubjectPool, args)
   }
 
-  private triggerSubject(eventName: string, ...args: any[]): void {
-    const subject = this._subjectPool[eventName]
-    if (subject) subject.next(args)
+  private triggerSubjectPool(subjectPool: SubjectPool, args: any[]): void {
+    for (const subject of Object.values(subjectPool)) subject.next(args)
+  }
+
+  /**
+   * Same as [[Radar.trigger]], but trigger many events
+   */
+  triggerMany(eventNames: string | string[], ...args: any[]) {
+    return Radar.toPromise<void>(() =>
+      this.triggerManySync(eventNames, ...args)
+    )
+  }
+
+  /**
+   * Same as [[Radar.triggerSync]], but trigger many events
+   */
+  triggerManySync(eventNames: string | string[], ...args: any[]): void {
+    for (const eventname of this.makeEventNamesArray(eventNames))
+      this.triggerSync(eventname, ...args)
   }
 
   /**
@@ -166,6 +184,21 @@ export class Radar {
   }
 
   /**
+   * Same as [[Radar.emit]], but emits many events
+   */
+  emitMany(eventNames: string | string[], ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.emitManySync(eventNames, ...args))
+  }
+
+  /**
+   * Same as [[Radar.emitSync]], but emits many events
+   */
+  emitManySync(eventNames: string | string[], ...args: any[]): void {
+    for (const eventName of this.makeEventNamesArray(eventNames))
+      this.emitSync(eventName, ...args)
+  }
+
+  /**
    * Trigger an event and their children with given data as arguments
    * @param eventName event name to trigger
    * @param args data to be sent as data with event to children
@@ -182,6 +215,27 @@ export class Radar {
     for (const name of this.getChildrenNames(eventName)) {
       this.broadcastSync(name, ...args)
     }
+  }
+
+  /**
+   * Same as [[Radar.broadcast]], but broadcasts many events
+   */
+  broadcastMany(eventNames: string | string[], ...args: any[]): Promise<void> {
+    return Radar.toPromise(() => this.broadcastManySync(eventNames, ...args))
+  }
+
+  /**
+   * Same as [[Radar.broadcastSync]], but broadcasts many events
+   */
+  broadcastManySync(eventNames: string | string[], ...args: any[]): void {
+    for (const eventName of this.makeEventNamesArray(eventNames))
+      this.broadcastSync(eventName, ...args)
+  }
+
+  private makeEventNamesArray(eventNames: string | string[]): string[] {
+    if (typeof eventNames == 'string')
+      return eventNames.split('.').filter(Boolean)
+    return eventNames
   }
 
   /**
