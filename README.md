@@ -65,7 +65,7 @@ radar.on('notify', () => state.count++)
 
 // receive any number off values as arguments
 radar.on('notify', ({ type }, ...data) => {
-  state.lastNotificationType = type)
+  state.lastNotificationType = type
   console.log(data)
 }
 
@@ -91,7 +91,7 @@ const subscribeThenUnsubscribe = async () => {
 subscribeThenUnsubscribe()
 
 // by Subscription (sync)
-const subscription = await radar.onSync('event', (...data) => {/*...*/})
+const subscription = radar.onSync('event', (...data) => {/*...*/})
 subscription.unsubscribe()
 ```
 
@@ -205,7 +205,7 @@ Native events has reserved names starting with $. Until now, the only native eve
 radar.on('$error', (error: Error) => {/*...*/})
 ```
 
-Radarjs default error handler is:
+Radar default error handler is:
 
 ```typescript
 (error: Error) => { throw error }
