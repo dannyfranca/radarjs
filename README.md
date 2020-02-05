@@ -26,6 +26,8 @@
 
 ## Install
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3d72c3f610ce42f4807566929c6a9660)](https://app.codacy.com/manual/dannyfranca/radarjs?utm_source=github.com&utm_medium=referral&utm_content=dannyfranca/radarjs&utm_campaign=Badge_Grade_Dashboard)
+
 ### Module
 
 #### Download
