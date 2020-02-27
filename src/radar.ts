@@ -148,15 +148,19 @@ export class Radar {
    */
   triggerOneSync(eventName: string, ...args: any[]): void {
     const subjectPool = this.matchKeys(eventName)
-    this.triggerSubjectPool(subjectPool as SubjectPool, args)
+    this.triggerSubjectPool(subjectPool, args)
   }
 
-  private matchKeys(eventName: string) {
-    return matchKeys(this._subjectPool, eventName)
+  private matchKeys(eventName: string): Partial<SubjectPool> {
+    return matchKeys<SubjectPool>(this._subjectPool, eventName)
   }
 
-  private triggerSubjectPool(subjectPool: SubjectPool, args: any[]): void {
-    for (const subject of Object.values(subjectPool)) subject.next(args)
+  private triggerSubjectPool(
+    subjectPool: Partial<SubjectPool>,
+    args: any[]
+  ): void {
+    for (const subject of Object.values(subjectPool))
+      if (subject) subject.next(args)
   }
 
   /**
