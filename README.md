@@ -22,6 +22,10 @@
     <img src="https://david-dm.org/dannyfranca/radarjs/status.svg?style=flat-square" />
 </a>
 
+<a href="https://www.codacy.com/manual/dannyfranca/radarjs" target="_blank">
+    <img src="https://img.shields.io/codacy/grade/addca1007fb044c3a994c7e0ec504092?style=flat-square&logo=codacy" />
+</a>
+
 </p>
 
 ## Install
