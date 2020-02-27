@@ -1,4 +1,4 @@
-import { Radar } from '../src/radar'
+import { Radar } from '../src'
 
 const radar = new Radar()
 

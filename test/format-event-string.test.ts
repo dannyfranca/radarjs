@@ -1,4 +1,4 @@
-import { Radar } from '../src/radar'
+import { Radar } from '../src'
 
 test('Empty Event String', () => {
   const eventObject1 = Radar.formatEventString('')

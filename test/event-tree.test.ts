@@ -1,4 +1,4 @@
-import { Radar } from '../src/radar'
+import { Radar } from '../src'
 import { subcribeToPromiseFactory } from '../src/helpers'
 
 const radar = new Radar()
